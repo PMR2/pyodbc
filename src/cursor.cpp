@@ -25,6 +25,7 @@
 #include "getdata.h"
 #include "dbspecific.h"
 #include <datetime.h>
+#include "virtuoso.h"
 
 enum
 {
@@ -808,6 +809,8 @@ static PyObject* execute(Cursor* cur, PyObject* pSql, PyObject* params, bool ski
     }
 
     FreeParameterData(cur);
+
+    cur->spasql = (cur->cnxn->virtuoso && isSPASQL(pSql));
 
     if (ret == SQL_NO_DATA)
     {
@@ -2152,7 +2155,7 @@ static int Cursor_setnoscan(PyObject* self, PyObject* value, void *closure)
         return -1;
     }
 
-    uintptr_t noscan = PyObject_IsTrue(value) ? SQL_NOSCAN_ON : SQL_NOSCAN_OFF;
+    ULONG noscan = PyObject_IsTrue(value) ? SQL_NOSCAN_ON : SQL_NOSCAN_OFF;
     SQLRETURN ret;
     Py_BEGIN_ALLOW_THREADS
     ret = SQLSetStmtAttr(cursor->hstmt, SQL_ATTR_NOSCAN, (SQLPOINTER)noscan, 0);
